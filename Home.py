@@ -12,7 +12,7 @@ import re
 from ezdxf.colors import aci2rgb
 from collections import defaultdict
 import streamlit as st
-from io import StringIO
+import uuid
 
 
 ezdxf.addons.drawing.properties.MODEL_SPACE_BG_COLOR = "#FFFFFF"
@@ -60,9 +60,11 @@ def show_dxf2img(doc, img_res=300):
 dxf_file = st.file_uploader("Upload a .dxf file")
 
 if dxf_file is not None:
-    dxf_file_io = StringIO(dxf_file.getvalue().decode("utf-8"))
+    filename = str(uuid.uuid4())
+    with open(filename, "w") as f:
+        f.write(dxf_file.read())
 
-    drawing = ezdxf.read(dxf_file_io)
+    drawing = ezdxf.readfile(filename)
 
 
     # Extract the data from the Visio file
