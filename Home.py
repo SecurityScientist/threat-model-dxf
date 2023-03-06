@@ -60,8 +60,7 @@ def show_dxf2img(doc, img_res=300):
 dxf_file = st.file_uploader("Upload a .dxf file")
 
 if dxf_file is not None:
-    bytes_data = dxf_file.getvalue()
-    dxf_file_io = StringIO(uploaded_file.getvalue().decode("utf-8"))
+    dxf_file_io = StringIO(dxf_file.getvalue().decode("utf-8"))
 
     drawing = ezdxf.read(dxf_file_io)
 
