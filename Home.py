@@ -13,6 +13,7 @@ from ezdxf.colors import aci2rgb
 from collections import defaultdict
 import streamlit as st
 import uuid
+from io import StringIO
 
 
 ezdxf.addons.drawing.properties.MODEL_SPACE_BG_COLOR = "#FFFFFF"
@@ -60,9 +61,11 @@ def show_dxf2img(doc, img_res=300):
 dxf_file = st.file_uploader("Upload a .dxf file")
 
 if dxf_file is not None:
+    stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
+
     filename = str(uuid.uuid4())
     with open(filename, "w") as f:
-        f.write(dxf_file.read())
+        f.write(stringio.read())
 
     drawing = ezdxf.readfile(filename)
 
