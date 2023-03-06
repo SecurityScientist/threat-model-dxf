@@ -61,47 +61,51 @@ def show_dxf2img(doc, img_res=300):
 dxf_file = st.file_uploader("Upload a .dxf file")
 
 if dxf_file is not None:
-    stringio = StringIO(uploaded_file.getvalue().decode("utf-8"))
+    stringio = StringIO(dxf_file.getvalue().decode("utf-8"))
 
     filename = str(uuid.uuid4())
     with open(filename, "w") as f:
         f.write(stringio.read())
 
-    drawing = ezdxf.readfile(filename)
+    try:
+        drawing = ezdxf.readfile(filename)
+    except Exception as e:
+        st.write(f"Failed to load .dxf file. {str(e)}")
+        drawing = None
+
+    if drawing is not None:
+        # Extract the data from the Visio file
+        n_nodes = defaultdict(int)
+        n_edges = 0
+        for entity in drawing.entities:
+            if entity.DXFTYPE == 'HATCH':
+                rgb_color = aci2rgb(entity.dxf.color)
+                color_name = convert_rgb_to_names(rgb_color)
+                n_nodes[color_name] += 1
 
 
-    # Extract the data from the Visio file
-    n_nodes = defaultdict(int)
-    n_edges = 0
-    for entity in drawing.entities:
-        if entity.DXFTYPE == 'HATCH':
-            rgb_color = aci2rgb(entity.dxf.color)
-            color_name = convert_rgb_to_names(rgb_color)
-            n_nodes[color_name] += 1
+            elif entity.DXFTYPE == 'LINE' or entity.DXFTYPE == 'SPLINE':
+                n_edges += 1
 
 
-        elif entity.DXFTYPE == 'LINE' or entity.DXFTYPE == 'SPLINE':
-            n_edges += 1
+        n_red_nodes = n_nodes["darkred"]
+        n_yellow_nodes = n_nodes["yellow"]
+        n_green_nodes = n_nodes["yellowgreen"]
+
+        show_dxf2img(drawing)
 
 
-    n_red_nodes = n_nodes["darkred"]
-    n_yellow_nodes = n_nodes["yellow"]
-    n_green_nodes = n_nodes["yellowgreen"]
+        risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges
 
-    show_dxf2img(drawing)
-
-
-    risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges
-
-    st.write("-"*10)
-    st.write(f"Number of green nodes: {n_green_nodes}")
-    st.write(f"Number of yellow nodes: {n_yellow_nodes}")
-    st.write(f"Number of red nodes: {n_red_nodes}")
-    st.write(f"Number of edges: {n_edges}")
-    st.write()
-    st.write("-"*10)
-    st.write("Current risk calculation:")
-    st.write("risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges")
-    st.write()
-    st.write("-"*10)
-    st.write(f"Calculated risk value for this attack tree: {risk}")
+        st.write("-"*10)
+        st.write(f"Number of green nodes: {n_green_nodes}")
+        st.write(f"Number of yellow nodes: {n_yellow_nodes}")
+        st.write(f"Number of red nodes: {n_red_nodes}")
+        st.write(f"Number of edges: {n_edges}")
+        st.write()
+        st.write("-"*10)
+        st.write("Current risk calculation:")
+        st.write("risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges")
+        st.write()
+        st.write("-"*10)
+        st.write(f"Calculated risk value for this attack tree: {risk}")
