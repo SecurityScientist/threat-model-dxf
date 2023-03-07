@@ -7,8 +7,6 @@ import matplotlib.pyplot as plt
 import ezdxf
 from ezdxf.addons.drawing import RenderContext, Frontend
 from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
-import glob
-import re
 from ezdxf.colors import aci2rgb
 from collections import defaultdict
 import streamlit as st
@@ -38,8 +36,7 @@ def convert_rgb_to_names(rgb_tuple):
 
 
 
-
-def show_dxf2img(doc, img_res=300):
+def show_dxf2img(doc):
     msp = doc.modelspace()
     # Recommended: audit & repair DXF document before rendering
     auditor = doc.audit()
@@ -58,7 +55,17 @@ def show_dxf2img(doc, img_res=300):
     st.pyplot(fig)
 
 
-dxf_file = st.file_uploader("Upload a .dxf file")
+st.markdown("""
+# Threat modelling risk calculator
+
+How to use:
+1. Create a threat model (like the example) in Microsoft VISO 
+2. Save the threat model as "AutoCAD Interchange (*.dxf)"
+3. Upload the .dxf file
+4. View your risk score
+
+""")
+dxf_file = st.file_uploader("Upload your own.dxf file")
 
 if dxf_file is not None:
     stringio = StringIO(dxf_file.getvalue().decode("utf-8"))
@@ -72,40 +79,43 @@ if dxf_file is not None:
     except Exception as e:
         st.write(f"Failed to load .dxf file. {str(e)}")
         drawing = None
+else:
+    drawing = ezdxf.readfile("demo.dxf")
+    st.write("A demo threat model is shown now.")
 
-    if drawing is not None:
-        # Extract the data from the Visio file
-        n_nodes = defaultdict(int)
-        n_edges = 0
-        for entity in drawing.entities:
-            if entity.DXFTYPE == 'HATCH':
-                rgb_color = aci2rgb(entity.dxf.color)
-                color_name = convert_rgb_to_names(rgb_color)
-                n_nodes[color_name] += 1
-
-
-            elif entity.DXFTYPE == 'LINE' or entity.DXFTYPE == 'SPLINE':
-                n_edges += 1
-
-
-        n_red_nodes = n_nodes["darkred"]
-        n_yellow_nodes = n_nodes["yellow"]
-        n_green_nodes = n_nodes["yellowgreen"]
-
-        show_dxf2img(drawing)
+if drawing is not None:
+    # Extract the data from the Visio file
+    n_nodes = defaultdict(int)
+    n_edges = 0
+    for entity in drawing.entities:
+        if entity.DXFTYPE == 'HATCH':
+            rgb_color = aci2rgb(entity.dxf.color)
+            color_name = convert_rgb_to_names(rgb_color)
+            n_nodes[color_name] += 1
 
 
-        risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges
+        elif entity.DXFTYPE == 'LINE' or entity.DXFTYPE == 'SPLINE':
+            n_edges += 1
 
-        st.write("-"*10)
-        st.write(f"Number of green nodes: {n_green_nodes}")
-        st.write(f"Number of yellow nodes: {n_yellow_nodes}")
-        st.write(f"Number of red nodes: {n_red_nodes}")
-        st.write(f"Number of edges: {n_edges}")
-        st.write()
-        st.write("-"*10)
-        st.write("Current risk calculation:")
-        st.write("risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges")
-        st.write()
-        st.write("-"*10)
-        st.write(f"Calculated risk value for this attack tree: {risk}")
+
+    n_red_nodes = n_nodes["darkred"]
+    n_yellow_nodes = n_nodes["yellow"]
+    n_green_nodes = n_nodes["yellowgreen"]
+
+    show_dxf2img(drawing)
+
+
+    risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges
+
+    st.write("-"*10)
+    st.write(f"Number of green nodes: {n_green_nodes}")
+    st.write(f"Number of yellow nodes: {n_yellow_nodes}")
+    st.write(f"Number of red nodes: {n_red_nodes}")
+    st.write(f"Number of edges: {n_edges}")
+    st.write()
+    st.write("-"*10)
+    st.write("Current risk calculation:")
+    st.write("risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges")
+    st.write()
+    st.write("-"*10)
+    st.write(f"Calculated risk value for this attack tree: {risk}")
