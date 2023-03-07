@@ -114,17 +114,18 @@ if drawing is not None:
     # Analysis
     Here we shown results of the analysis of your model
     
-    **Node analysis**
+    #### Node analysis
     Number of green nodes: {n_green_nodes}
     
     Number of yellow nodes: {n_yellow_nodes}
     
     Number of red nodes: {n_red_nodes}
     
-    **Connection analysis**
+    #### Connection analysis
+    
     Number of edges: {n_edges}
     
-    **Risk analysis**
+    #### Risk analysis
     Current risk calculation:
     risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges
     
