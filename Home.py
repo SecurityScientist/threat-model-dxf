@@ -57,16 +57,19 @@ def show_dxf2img(doc):
 
 st.markdown("""
 # Threat modelling risk calculator
+This calculator calculates the risk of your threat model like the example shown below.
 
-How to use:
+## How to use:
 1. Create a threat model (like the example) in Microsoft VISO 
 2. Save the threat model as "AutoCAD Interchange (*.dxf)"
 3. Upload the .dxf file
 4. View your risk score
 
+## Upload your own threat model
 """)
 dxf_file = st.file_uploader("Upload your own.dxf file")
 
+st.header("The Threat Model")
 if dxf_file is not None:
     stringio = StringIO(dxf_file.getvalue().decode("utf-8"))
 
@@ -107,15 +110,21 @@ if drawing is not None:
 
     risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges
 
-    st.write("-"*10)
-    st.write(f"Number of green nodes: {n_green_nodes}")
-    st.write(f"Number of yellow nodes: {n_yellow_nodes}")
-    st.write(f"Number of red nodes: {n_red_nodes}")
-    st.write(f"Number of edges: {n_edges}")
-    st.write()
-    st.write("-"*10)
-    st.write("Current risk calculation:")
-    st.write("risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges")
-    st.write()
-    st.write("-"*10)
-    st.write(f"Calculated risk value for this attack tree: {risk}")
+    st.markdown(f"""
+    # Analysis
+    Here we shown results of the analysis of your model
+    
+    ## Node analysis
+    Number of green nodes: **{n_green_nodes}**
+    Number of yellow nodes: **{n_yellow_nodes}**
+    Number of red nodes: **{n_red_nodes}**
+    
+    ## Connection analysis
+    Number of edges: **{n_edges}**
+    
+    ## Risk analysis
+    Current risk calculation:
+    risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges
+    
+    Calculated risk value: **{risk}**
+    """)
