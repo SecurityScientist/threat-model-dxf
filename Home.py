@@ -91,11 +91,11 @@ if drawing is not None:
     n_nodes = defaultdict(int)
     n_edges = 0
     for entity in drawing.entities:
+        st.write(entity.DXFTYPE)
         if entity.DXFTYPE == 'HATCH':
             rgb_color = aci2rgb(entity.dxf.color)
             color_name = convert_rgb_to_names(rgb_color)
             n_nodes[color_name] += 1
-
 
         elif entity.DXFTYPE == 'LINE' or entity.DXFTYPE == 'SPLINE':
             n_edges += 1
