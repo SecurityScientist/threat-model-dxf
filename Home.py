@@ -13,13 +13,9 @@ import streamlit as st
 import uuid
 from io import StringIO
 
-
 ezdxf.addons.drawing.properties.MODEL_SPACE_BG_COLOR = "#FFFFFF"
-color_multipler = {
-  "yellowgreen": 1,
-  "yellow": 2,
-  "darkred": 3
-}
+color_multipler = {"yellowgreen": 1, "yellow": 2, "darkred": 3}
+
 
 def convert_rgb_to_names(rgb_tuple):
     # a dictionary of all the hex and their respective names in css3
@@ -33,7 +29,6 @@ def convert_rgb_to_names(rgb_tuple):
     kdt_db = KDTree(rgb_values)
     distance, index = kdt_db.query(rgb_tuple)
     return names[index]
-
 
 
 def show_dxf2img(doc):
@@ -55,7 +50,8 @@ def show_dxf2img(doc):
     st.pyplot(fig)
 
 
-st.markdown("""
+st.markdown(
+    """
 # Threat modelling risk calculator
 This calculator calculates the risk of your threat model like the example shown below.
 
@@ -66,7 +62,8 @@ This calculator calculates the risk of your threat model like the example shown 
 4. View your risk score
 
 ## Upload your own threat model
-""")
+"""
+)
 dxf_file = st.file_uploader("Upload your own.dxf file")
 
 st.header("The Threat Model")
@@ -88,29 +85,55 @@ else:
 
 if drawing is not None:
     # Extract the data from the Visio file
-    n_nodes = defaultdict(int)
-    n_edges = 0
+    groups = []
+    current_group = {}
     for entity in drawing.entities:
-        if entity.DXFTYPE == 'HATCH':
+        if entity.DXFTYPE == "LWPOLYLINE" or entity.DXFTYPE == "SPLINE":
+            if current_group:
+                groups.append(current_group)
+            current_group = {}
+
+        if entity.DXFTYPE == "LWPOLYLINE" and entity.dxf.count == 2:
+            current_group["type"] = "circle"
+        elif entity.DXFTYPE == "LWPOLYLINE" and entity.dxf.count == 4:
+            current_group["type"] = "rectangle"
+        elif entity.DXFTYPE == "SPLINE":
+            current_group["type"] = "line"
+        elif entity.DXFTYPE == "MTEXT":
+            current_group["text"] = entity.dxf.text.split(";")[-1].replace("\P", "")
+        elif entity.DXFTYPE == "HATCH":
             rgb_color = aci2rgb(entity.dxf.color)
-            color_name = convert_rgb_to_names(rgb_color)
-            n_nodes[color_name] += 1
+            current_group["color"] = convert_rgb_to_names(rgb_color)
 
+    n_red_nodes = len(
+        [
+            group
+            for group in groups
+            if group["type"] == "circle" and group["color"] == "darkred"
+        ]
+    )
+    n_yellow_nodes = len(
+        [
+            group
+            for group in groups
+            if group["type"] == "circle" and group["color"] == "yellow"
+        ]
+    )
+    n_green_nodes = len(
+        [
+            group
+            for group in groups
+            if group["type"] == "circle" and group["color"] == "yellowgreen"
+        ]
+    )
 
-        elif entity.DXFTYPE == 'LINE' or entity.DXFTYPE == 'SPLINE':
-            n_edges += 1
-
-
-    n_red_nodes = n_nodes["darkred"]
-    n_yellow_nodes = n_nodes["yellow"]
-    n_green_nodes = n_nodes["yellowgreen"]
-
+    n_edges = len([group for group in groups if group["type"] == "line"])
     show_dxf2img(drawing)
-
 
     risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges
 
-    st.markdown(f"""
+    st.markdown(
+        f"""
     # Analysis
     Here we shown results of the analysis of your model
     
@@ -130,4 +153,5 @@ if drawing is not None:
     risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges
     
     Calculated risk value: **{risk}**
-    """)
+    """
+    )
