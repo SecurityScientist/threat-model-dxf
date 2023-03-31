@@ -146,6 +146,10 @@ if drawing is not None:
     n_edges = len(
         [group for group in groups if group["type"] == "line" and "text" in group]
     )
+
+    n_assets = len(
+        [group for group in groups if group["type"] == "rectangle" and "text" in group]
+    )
     show_dxf2img(drawing)
 
     risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges
@@ -165,6 +169,9 @@ if drawing is not None:
     #### Connection analysis
     
     Number of edges: {n_edges}
+    
+    #### Assets
+    Number of assets: {n_assets}
     
     #### Risk analysis
     Current risk calculation:
