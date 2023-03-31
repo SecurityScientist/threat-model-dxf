@@ -12,6 +12,21 @@ from collections import defaultdict
 import streamlit as st
 import uuid
 from io import StringIO
+import math
+
+
+def get_distance(lat_1, lng_1, lat_2, lng_2):
+    """https://stackoverflow.com/a/44743104"""
+    d_lat = lat_2 - lat_1
+    d_lng = lng_2 - lng_1
+
+    temp = (
+        math.sin(d_lat / 2) ** 2
+        + math.cos(lat_1) * math.cos(lat_2) * math.sin(d_lng / 2) ** 2
+    )
+
+    return 6373.0 * (2 * math.atan2(math.sqrt(temp), math.sqrt(1 - temp)))
+
 
 ezdxf.addons.drawing.properties.MODEL_SPACE_BG_COLOR = "#FFFFFF"
 color_multipler = {"yellowgreen": 1, "yellow": 2, "darkred": 3}
@@ -109,7 +124,7 @@ if drawing is not None:
         [
             group
             for group in groups
-            if group["type"] == "circle" and group["color"] == "darkred"
+            if group["type"] == "circle" and group["color"] in ["darkred", "red"]
         ]
     )
     n_yellow_nodes = len(
@@ -123,11 +138,14 @@ if drawing is not None:
         [
             group
             for group in groups
-            if group["type"] == "circle" and group["color"] == "yellowgreen"
+            if group["type"] == "circle"
+            and group["color"] in ["yellowgreen", "springgreen"]
         ]
     )
 
-    n_edges = len([group for group in groups if group["type"] == "line"])
+    n_edges = len(
+        [group for group in groups if group["type"] == "line" and "text" in group]
+    )
     show_dxf2img(drawing)
 
     risk = n_red_nodes * 3 + n_yellow_nodes * 2 + n_green_nodes + n_edges
