@@ -8,7 +8,6 @@ import ezdxf
 from ezdxf.addons.drawing import RenderContext, Frontend
 from ezdxf.addons.drawing.matplotlib import MatplotlibBackend
 from ezdxf.colors import aci2rgb
-from collections import defaultdict
 import streamlit as st
 import uuid
 from io import StringIO
@@ -71,17 +70,23 @@ st.markdown(
 This calculator calculates the risk of your threat model like the example shown below.
 
 ## How to use:
-1. Create a threat model (like the example) in Microsoft VISO 
+1. Download the example VISO file below 
+2. Create a threat model (based on the example) in Microsoft VISO 
 2. Save the threat model as "AutoCAD Interchange (*.dxf)"
 3. Upload the .dxf file
 4. View your risk score
-
-## Upload your own threat model
 """
 )
-dxf_file = st.file_uploader("Upload your own.dxf file")
+with open("viso_demo.vsdx", "rb") as file:
+    st.download_button(
+        label="Download the example VISO threat model",
+        data=file,
+        file_name="example_threat_model.vsdx",
+        mime="text/csv",
+    )
 
 st.header("The Threat Model")
+dxf_file = st.file_uploader("Upload your own.dxf file")
 if dxf_file is not None:
     stringio = StringIO(dxf_file.getvalue().decode("utf-8"))
 
